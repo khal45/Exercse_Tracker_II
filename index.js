@@ -93,7 +93,7 @@ app.get("/api/users", async (req, res) => {
     const result = await User.find({}, { __v: 0 });
     // map through 'result' to return desired result
     const updatedUsers = result.map((user) => {
-      return { _id: user._id.toString(), name: user.name };
+      return { _id: user._id.toString(), username: user.name };
     });
     res.send(updatedUsers);
   } catch (err) {
