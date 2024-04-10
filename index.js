@@ -110,15 +110,28 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     // search for the user and get the neccesary info
     const user = await User.findById(_id);
     // get the count
-    const exercise = await Exercise.find({ user_id: _id });
+    const exercise = await Exercise.find(
+      { user_id: _id },
+      { __v: 0, _id: 0, user_id: 0 }
+    );
     const count = await Exercise.countDocuments({ user_id: _id });
     console.log(exercise);
     // return only description, duration, date for the log
+    const filteredExercise = exercise.map((element) => {
+      return {
+        description: element.description,
+        duration: element.duration,
+        date: element.date.toDateString(),
+      };
+    });
+
+    console.log(filteredExercise);
+
     res.json({
       _id: user._id,
       username: user.name,
       count: count,
-      log: exercise,
+      log: filteredExercise,
     });
   } catch (err) {
     console.log(err);
