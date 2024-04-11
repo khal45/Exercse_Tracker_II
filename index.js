@@ -105,32 +105,50 @@ app.get("/api/users", async (req, res) => {
 // get the basic structure
 app.get("/api/users/:_id/logs", async (req, res) => {
   try {
+    const { from, to, limit } = req.query;
     // get the id from the params
     const { _id } = req.params;
+
+    let dateObj = {};
+    if (from) {
+      dateObj["$gte"] = new Date(from);
+    }
+    if (to) {
+      dateObj["$lte"] = new Date(to);
+    }
+    let filter = {
+      user_id: _id,
+    };
+    if (from || to) {
+      filter.date = dateObj;
+    }
+
+    // console.log(from, to, limit);
     // search for the user and get the neccesary info
     const user = await User.findById(_id);
     // get the count
-    const exercise = await Exercise.find(
-      { user_id: _id },
-      { __v: 0, _id: 0, user_id: 0 }
-    );
-    const count = await Exercise.countDocuments({ user_id: _id });
-    console.log(exercise);
+    // const exercises = await Exercise.find(
+    //   { user_id: _id },
+    //   { __v: 0, _id: 0, user_id: 0 }
+    // ).limit(+limit ?? 500);
+    // const count = await Exercise.countDocuments({ user_id: _id });
+    const exercises = await Exercise.find(filter).limit(+limit ?? 500);
+    // console.log(exercises);
     // return only description, duration, date for the log
-    const filteredExercise = exercise.map((element) => {
+    const filteredExercise = exercises.map((exercise) => {
       return {
-        description: element.description,
-        duration: element.duration,
-        date: element.date.toDateString(),
+        description: exercise.description,
+        duration: exercise.duration,
+        date: exercise.date.toDateString(),
       };
     });
 
-    console.log(filteredExercise);
+    // console.log(filteredExercise);
 
     res.json({
       _id: user._id,
       username: user.name,
-      count: count,
+      count: exercises.length,
       log: filteredExercise,
     });
   } catch (err) {
